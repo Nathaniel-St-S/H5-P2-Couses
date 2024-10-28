@@ -1,7 +1,3 @@
-import tester.*;
-/*
-public interface IPred<R> extends IFunc<T, Boolean>{
-  public Boolean visitCourse(Course course);
-  public Boolean visitIListCourse(IList<Course> courseList);
+interface IPred<X> extends IFunc<X, Boolean> {
+  Boolean apply(X arg);
 }
-*/
