@@ -14,7 +14,7 @@ public class Course {
   }
 
   boolean hasPrereq(Course course) {
-    return this.prereqs.accept(new HasPrereq(course));
+    return new HasPrereq(course).apply(this);
   }
 
   int apply(IListVisitor visitor) {
@@ -32,13 +32,24 @@ class DeepestPathLength implements IListVisitor<Course, Integer>{
   public Integer apply(IList<Course> course) {
     return course.accept(this);
   }
-
 }
 
-class HasPrereq implements IListVisitor<Course, Boolean> {
+class HasPrereq implements IPred<Course> {
   Course targetCourse;
 
   HasPrereq(Course targetCourse) {
+    this.targetCourse = targetCourse;
+  }
+
+  public Boolean apply(Course course) {
+    return new HasPrereqVisitor(targetCourse).apply(course.prereqs);
+  }
+}
+
+class HasPrereqVisitor implements IListVisitor<Course, Boolean> {
+  Course targetCourse;
+
+  HasPrereqVisitor(Course targetCourse) {
     this.targetCourse = targetCourse;
   }
 
@@ -79,10 +90,10 @@ class ExamplesCourse{
         new ConsList<Course>(introToProgrammingI, mtList))));
   Course extremelyImportantCourse = new Course("Intro to Basket-weaving",mandatoryPreReqs);
 
-  boolean testDeepestLength(Tester t){
-    return t.checkExpect(extremelyImportantCourse.getDeepestPathLength(), 3)&&
-      t.checkExpect(new DeepestPathLength().apply(extremelyImportantCourse.prereqs),  3)&&
-      t.checkExpect(extremelyImportantCourse.apply(new DeepestPathLength()),  3);
+  void testDeepestLength(Tester t){
+    t.checkExpect(extremelyImportantCourse.getDeepestPathLength(), 3);
+    t.checkExpect(new DeepestPathLength().apply(extremelyImportantCourse.prereqs),  3);
+    t.checkExpect(extremelyImportantCourse.apply(new DeepestPathLength()),  3);
   }
 
   void testHasPrereq(Tester t){
@@ -91,5 +102,6 @@ class ExamplesCourse{
     t.checkExpect(extremelyImportantCourse.hasPrereq(programingLanguages), true);
     t.checkExpect(extremelyImportantCourse.hasPrereq(journeyOfTransformation), true);
     t.checkExpect(extremelyImportantCourse.hasPrereq(extremelyImportantCourse), false);
+    t.checkExpect(introToProgrammingII.hasPrereq(journeyOfTransformation), false);
   }
 }
