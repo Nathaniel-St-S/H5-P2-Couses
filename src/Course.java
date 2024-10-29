@@ -17,7 +17,7 @@ public class Course {
 //    return new HasPrereq(course).apply(this);
 //  }
 
-  boolean hasPrereq(Course course) {
+  boolean hasPrereq(String course) {
     return new Ormap<Course>(
       new HasPrereq(course)
     ).apply(this.prereqs);
@@ -25,6 +25,10 @@ public class Course {
 
   int apply(IListVisitor<Course, Integer> visitor) {
     return visitor.apply(this.prereqs);
+  }
+
+  boolean equals(String course) {
+    return this.name.equals(course);
   }
 }
 
@@ -41,9 +45,9 @@ class DeepestPathLength implements IListVisitor<Course, Integer>{
 }
 
 class HasPrereq implements IPred<Course> {
-  Course targetCourse;
+  String targetCourse;
 
-  HasPrereq(Course targetCourse) {
+  HasPrereq(String targetCourse) {
     this.targetCourse = targetCourse;
   }
 
@@ -131,11 +135,11 @@ class ExamplesCourse {
   }
 
   void testHasPrereq(Tester t){
-    t.checkExpect(extremelyImportantCourse.hasPrereq(introToProgrammingI), true);
-    t.checkExpect(extremelyImportantCourse.hasPrereq(introToProgrammingII), true);
-    t.checkExpect(extremelyImportantCourse.hasPrereq(programingLanguages), true);
-    t.checkExpect(extremelyImportantCourse.hasPrereq(journeyOfTransformation), true);
-    t.checkExpect(extremelyImportantCourse.hasPrereq(extremelyImportantCourse), false);
-    t.checkExpect(introToProgrammingII.hasPrereq(journeyOfTransformation), false);
+    t.checkExpect(extremelyImportantCourse.hasPrereq("Introduction to Programming I"), true);
+    t.checkExpect(extremelyImportantCourse.hasPrereq("Introduction to Programming II"), true);
+    t.checkExpect(extremelyImportantCourse.hasPrereq("Programing Languages"), true);
+    t.checkExpect(extremelyImportantCourse.hasPrereq("Journey of Transformation"), true);
+    t.checkExpect(extremelyImportantCourse.hasPrereq("Intro To Basket-weaving"), false);
+    t.checkExpect(introToProgrammingII.hasPrereq("Journey of Transformation"), false);
   }
 }
