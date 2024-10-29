@@ -13,12 +13,18 @@ public class Course {
     return this.prereqs.accept(new DeepestPathLength());
   }
 
+//  boolean hasPrereq(Course course) {
+//    return new HasPrereq(course).apply(this);
+//  }
+
   boolean hasPrereq(Course course) {
-    return new HasPrereq(course).apply(this);
+    return new Ormap<Course>(
+      new HasPrereq(course)
+    ).apply(this.prereqs);
   }
 
-  int apply(IListVisitor visitor) {
-    return new DeepestPathLength().apply(this.prereqs);
+  int apply(IListVisitor<Course, Integer> visitor) {
+    return visitor.apply(this.prereqs);
   }
 }
 
@@ -42,58 +48,86 @@ class HasPrereq implements IPred<Course> {
   }
 
   public Boolean apply(Course course) {
-    return new HasPrereqVisitor(targetCourse).apply(course.prereqs);
+    return course.equals(targetCourse) || course.hasPrereq(targetCourse);
   }
 }
 
-class HasPrereqVisitor implements IListVisitor<Course, Boolean> {
-  Course targetCourse;
+class ExamplesCourse {
+  Course introToProgrammingI = new Course(
+    "Introduction to Programming I",
+    new MtList<Course>()
+  );
+  Course introToProgrammingII = new Course(
+    "Introduction to Programming II",
+    new ConsList<Course>(
+      introToProgrammingI,
+      new MtList<Course>()
+    )
+  );
+  Course programingLanguages = new Course(
+    "Programing Languages",
+    new ConsList<Course>(introToProgrammingII,
+      new ConsList<Course>(introToProgrammingI,
+        new MtList<Course>()
+      )
+    )
+  );
+  Course journeyOfTransformation = new Course(
+    "Journey of Transformation",
+    new MtList<Course>()
+  );
 
-  HasPrereqVisitor(Course targetCourse) {
-    this.targetCourse = targetCourse;
-  }
+  Course extremelyImportantCourse = new Course(
+    "Intro to Basket-weaving",
+    new ConsList<Course>(
+      journeyOfTransformation,
+      new ConsList<Course>(programingLanguages,
+        new ConsList<Course>(introToProgrammingII,
+          new ConsList<Course>(introToProgrammingI,
+            new MtList<Course>()
+          )
+        )
+      )
+    )
+  );
 
-  public Boolean visitConsList(ConsList<Course> consList) {
-    // check if the current course matches the target course
-    if (consList.first.equals(targetCourse)) {
-      return true;
-    }
-    // recursively check if the current course has the target course as a prerequisite
-    if (consList.first.hasPrereq(targetCourse)) {
-      return true;
-    }
-    // continue checking the rest of the list
-    return consList.rest.accept(this);
-  }
-
-  public Boolean visitMtList(MtList<Course> mtList) {
-    return false;
-  }
-
-  public Boolean apply(IList<Course> course) {
-    return course.accept(this);
-  }
-}
-
-class ExamplesCourse{
-  IList<Course> mtList = new MtList<>();
-  Course introToProgrammingI = new Course("Introduction to Programming I", mtList);
-  Course introToProgrammingII = new Course("Introduction to Programming II",
-    new ConsList<>(introToProgrammingI, mtList));
-  Course programingLanguages = new Course("Programing Languages",
-    new ConsList<>(introToProgrammingII,
-      new ConsList<>(introToProgrammingI, mtList)));
-  Course journeyOfTransformation = new Course("Journey of Transformation", mtList);
-  IList<Course> mandatoryPreReqs = new ConsList<Course>(journeyOfTransformation,
-    new ConsList<Course>(programingLanguages,
-      new ConsList<Course>(introToProgrammingII,
-        new ConsList<Course>(introToProgrammingI, mtList))));
-  Course extremelyImportantCourse = new Course("Intro to Basket-weaving",mandatoryPreReqs);
+  Course algebra = new Course(
+    "Algebra",
+    new MtList<Course>()
+  );
+  Course calculus = new Course(
+    "Calculus",
+    new ConsList<Course>(
+      algebra,
+      new MtList<Course>()
+    )
+  );
+  Course logic = new Course(
+    "Logic",
+    new MtList<Course>()
+  );
+  Course discreteMathematics = new Course(
+    "Discrete Mathematics",
+    new ConsList<Course>(
+      calculus,
+      new ConsList<Course>(
+        logic,
+        new MtList<Course>()
+      )
+    )
+  );
 
   void testDeepestLength(Tester t){
     t.checkExpect(extremelyImportantCourse.getDeepestPathLength(), 3);
     t.checkExpect(new DeepestPathLength().apply(extremelyImportantCourse.prereqs),  3);
     t.checkExpect(extremelyImportantCourse.apply(new DeepestPathLength()),  3);
+    t.checkExpect(introToProgrammingI.getDeepestPathLength(), 0);
+    t.checkExpect(introToProgrammingII.getDeepestPathLength(), 1);
+    t.checkExpect(programingLanguages.getDeepestPathLength(), 2);
+    t.checkExpect(algebra.getDeepestPathLength(), 0);
+    t.checkExpect(calculus.getDeepestPathLength(), 1);
+    t.checkExpect(logic.getDeepestPathLength(), 0);
+    t.checkExpect(discreteMathematics.getDeepestPathLength(), 2);
   }
 
   void testHasPrereq(Tester t){
